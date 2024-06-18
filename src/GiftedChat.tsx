@@ -9,7 +9,6 @@ import PropTypes from 'prop-types'
 import React, { createRef, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
-  FlatList,
   KeyboardAvoidingView,
   LayoutChangeEvent,
   Platform,
@@ -49,12 +48,13 @@ import { Send, SendProps } from './Send'
 import { SystemMessage, SystemMessageProps } from './SystemMessage'
 import { Time, TimeProps } from './Time'
 import * as utils from './utils'
+import { FlashList } from '@shopify/flash-list'
 
 dayjs.extend(localizedFormat)
 
 export interface GiftedChatProps<TMessage extends IMessage = IMessage> {
   /* Message container ref */
-  messageContainerRef?: React.RefObject<FlatList<IMessage>>
+  messageContainerRef?: React.RefObject<FlashList<IMessage>>
   /* text input ref */
   textInputRef?: React.RefObject<TextInput>
   /* Messages to display */
@@ -261,7 +261,7 @@ function GiftedChat<TMessage extends IMessage = IMessage>(
     inverted = true,
     minComposerHeight = MIN_COMPOSER_HEIGHT,
     maxComposerHeight = MAX_COMPOSER_HEIGHT,
-    messageContainerRef = createRef<FlatList<IMessage>>(),
+    messageContainerRef = createRef<FlashList<IMessage>>(),
     textInputRef = createRef<TextInput>(),
   } = props
 

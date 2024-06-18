@@ -13,7 +13,6 @@ import {
   ViewStyle,
   Platform,
   ListRenderItemInfo,
-  ListViewProps,
 } from 'react-native'
 
 import { LoadEarlier, LoadEarlierProps } from './LoadEarlier'
@@ -24,6 +23,7 @@ import TypingIndicator from './TypingIndicator'
 
 import { StylePropType } from './utils'
 import { warning } from './logging'
+import { FlashList, FlashListProps } from '@shopify/flash-list'
 
 const styles = StyleSheet.create({
   container: {
@@ -70,7 +70,7 @@ export interface MessageContainerProps<TMessage extends IMessage> {
   messages?: TMessage[]
   isTyping?: boolean
   user?: User
-  listViewProps: Partial<ListViewProps>
+  listViewProps: Partial<FlashListProps<TMessage>>
   inverted?: boolean
   loadEarlier?: boolean
   alignTop?: boolean
@@ -79,7 +79,7 @@ export interface MessageContainerProps<TMessage extends IMessage> {
   invertibleScrollViewProps?: any
   extraData?: any
   scrollToBottomOffset?: number
-  forwardRef?: RefObject<FlatList<IMessage>>
+  forwardRef?: RefObject<FlashList<IMessage>>
   renderChatEmpty?(): React.ReactNode
   renderFooter?(props: MessageContainerProps<TMessage>): React.ReactNode
   renderMessage?(props: Message['props']): React.ReactNode
@@ -275,7 +275,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
 
   return (
     <View style={props.alignTop ? styles.containerAlignTop : styles.container}>
-      <FlatList
+      <FlashList
         ref={flatListRef}
         extraData={[props.extraData, props.isTyping]}
         keyExtractor={keyExtractor}
