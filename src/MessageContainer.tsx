@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types'
 import React, { useState, useRef, RefObject } from 'react'
 
 import {
@@ -21,7 +20,6 @@ import Color from './Color'
 import { User, IMessage, Reply } from './Models'
 import TypingIndicator from './TypingIndicator'
 
-import { StylePropType } from './utils'
 import { warning } from './logging'
 import { FlashList, FlashListProps } from '@shopify/flash-list'
 
@@ -34,17 +32,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   contentContainerStyle: {
-    flexGrow: 1,
-    justifyContent: 'flex-start',
+    // flexGrow: 1,
+    // justifyContent: 'flex-start',
   },
   emptyChatContainer: {
     flex: 1,
     transform: [{ scaleY: -1 }],
   },
   headerWrapper: {
-    flex: 1,
-  },
-  listStyle: {
     flex: 1,
   },
   scrollToBottomStyle: {
@@ -70,7 +65,7 @@ export interface MessageContainerProps<TMessage extends IMessage> {
   messages?: TMessage[]
   isTyping?: boolean
   user?: User
-  listViewProps: Partial<FlashListProps<TMessage>>
+  listViewProps?: Partial<FlashListProps<TMessage>>
   inverted?: boolean
   loadEarlier?: boolean
   alignTop?: boolean
@@ -94,6 +89,28 @@ export interface MessageContainerProps<TMessage extends IMessage> {
 const MessageContainer = <TMessage extends IMessage = IMessage>(
   props: MessageContainerProps<TMessage>,
 ) => {
+  const {
+    messages = [],
+    user = {},
+    isTyping = false,
+    renderChatEmpty = null,
+    renderFooter = null,
+    renderMessage = null,
+    onLoadEarlier = () => {},
+    onQuickReply = () => {},
+    inverted = true,
+    loadEarlier = false,
+    listViewProps = {},
+    invertibleScrollViewProps = {},
+    extraData = null,
+    scrollToBottom = false,
+    scrollToBottomOffset = 200,
+    alignTop = false,
+    infiniteScroll = false,
+    isLoadingEarlier = false,
+    ...restProps
+  } = props
+
   const [showScrollBottom, setShowScrollBottom] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
   const flatListRef = props.forwardRef || useRef<FlatList<IMessage>>(null)
@@ -102,8 +119,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     flatListRef.current?.scrollToOffset(options)
   }
 
-  const scrollToBottom = (animated = true) => {
-    const { inverted } = props
+  const scrollToBottomWithInvertedCheck = (animated = true) => {
     if (inverted) {
       scrollTo({ offset: 0, animated })
     } else {
@@ -119,8 +135,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
         layoutMeasurement: { height: layoutMeasurementHeight },
       },
     } = event
-    const { scrollToBottomOffset } = props
-    if (props.inverted) {
+    if (inverted) {
       if (contentOffsetY > scrollToBottomOffset!) {
         setShowScrollBottom(true)
         setHasScrolled(true)
@@ -146,18 +161,18 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     if (Platform.OS === 'web') {
       return null
     }
-    return <TypingIndicator isTyping={props.isTyping || false} />
+    return <TypingIndicator isTyping={isTyping} />
   }
 
-  const renderFooter = () => {
-    if (props.renderFooter) {
-      return props.renderFooter(props)
+  const renderFooterView = () => {
+    if (renderFooter) {
+      return renderFooter(props)
     }
     return renderTypingIndicator()
   }
 
   const renderLoadEarlier = () => {
-    if (props.loadEarlier === true) {
+    if (loadEarlier === true) {
       const loadEarlierProps = {
         ...props,
       }
@@ -182,8 +197,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
       }
       item.user = { _id: 0 }
     }
-    const { messages, user, inverted, ...restProps } = props
-    if (messages && user) {
+    if (messages && messages.length > 0 && user) {
       const previousMessage =
         (inverted ? messages[index + 1] : messages[index - 1]) || {}
       const nextMessage =
@@ -191,29 +205,31 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
 
       const messageProps: Message['props'] = {
         ...restProps,
+        // @ts-expect-error
         user,
         key: item._id,
         currentMessage: item,
         previousMessage,
         inverted,
         nextMessage,
+        // @ts-expect-error
         position: item.user._id === user._id ? 'right' : 'left',
       }
 
-      if (props.renderMessage) {
-        return props.renderMessage(messageProps)
+      if (renderMessage) {
+        return renderMessage(messageProps)
       }
       return <Message {...messageProps} />
     }
     return null
   }
 
-  const renderChatEmpty = () => {
-    if (props.renderChatEmpty) {
-      return props.inverted ? (
-        props.renderChatEmpty()
+  const renderChatEmptyView = () => {
+    if (renderChatEmpty) {
+      return inverted ? (
+        renderChatEmpty()
       ) : (
-        <View style={styles.emptyChatContainer}>{props.renderChatEmpty()}</View>
+        <View style={styles.emptyChatContainer}>{renderChatEmpty()}</View>
       )
     }
     return <View style={styles.container} />
@@ -236,7 +252,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     return (
       <View style={[styles.scrollToBottomStyle, propsStyle]}>
         <TouchableOpacity
-          onPress={() => scrollToBottom()}
+          onPress={() => scrollToBottomWithInvertedCheck()}
           hitSlop={{ top: 5, left: 5, right: 5, bottom: 5 }}
         >
           {renderScrollBottomComponent()}
@@ -246,18 +262,15 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
   }
 
   const onLayoutList = () => {
-    if (!props.inverted && !!props.messages && props.messages!.length) {
-      setTimeout(() => scrollToBottom(false), 15 * props.messages!.length)
+    if (!inverted && !!messages && messages!.length) {
+      setTimeout(
+        () => scrollToBottomWithInvertedCheck(false),
+        15 * messages!.length,
+      )
     }
   }
 
   const onEndReached = ({ distanceFromEnd }: { distanceFromEnd: number }) => {
-    const {
-      loadEarlier,
-      onLoadEarlier,
-      infiniteScroll,
-      isLoadingEarlier,
-    } = props
     if (
       infiniteScroll &&
       (hasScrolled || distanceFromEnd > 0) &&
@@ -274,82 +287,35 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
   const keyExtractor = (item: TMessage) => `${item._id}`
 
   return (
-    <View style={props.alignTop ? styles.containerAlignTop : styles.container}>
+    <View style={alignTop ? styles.containerAlignTop : styles.container}>
       <FlashList
         ref={flatListRef}
-        extraData={[props.extraData, props.isTyping]}
+        extraData={[extraData, isTyping]}
         keyExtractor={keyExtractor}
         enableEmptySections
         automaticallyAdjustContentInsets={false}
-        inverted={props.inverted}
-        data={props.messages}
-        style={styles.listStyle}
+        inverted={inverted}
+        data={messages}
+        // style={styles.listStyle}
         contentContainerStyle={styles.contentContainerStyle}
         renderItem={renderRow}
-        {...props.invertibleScrollViewProps}
-        ListEmptyComponent={renderChatEmpty}
-        ListFooterComponent={
-          props.inverted ? renderHeaderWrapper : renderFooter
-        }
-        ListHeaderComponent={
-          props.inverted ? renderFooter : renderHeaderWrapper
-        }
+        {...invertibleScrollViewProps}
+        ListEmptyComponent={renderChatEmptyView}
+        ListFooterComponent={inverted ? renderHeaderWrapper : renderFooter}
+        ListHeaderComponent={inverted ? renderFooterView : renderHeaderWrapper}
         onScroll={handleOnScroll}
         scrollEventThrottle={100}
         onLayout={onLayoutList}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.1}
-        {...props.listViewProps}
+        estimatedItemSize={200}
+        {...listViewProps}
       />
-      {showScrollBottom && props.scrollToBottom
+      {showScrollBottom && scrollToBottom
         ? renderScrollToBottomWrapper()
         : null}
     </View>
   )
-}
-
-MessageContainer.defaultProps = {
-  messages: [],
-  user: {},
-  isTyping: false,
-  renderChatEmpty: null,
-  renderFooter: null,
-  renderMessage: null,
-  onLoadEarlier: () => {},
-  onQuickReply: () => {},
-  inverted: true,
-  loadEarlier: false,
-  listViewProps: {},
-  invertibleScrollViewProps: {},
-  extraData: null,
-  scrollToBottom: false,
-  scrollToBottomOffset: 200,
-  alignTop: false,
-  scrollToBottomStyle: {},
-  infiniteScroll: false,
-  isLoadingEarlier: false,
-}
-
-MessageContainer.propTypes = {
-  messages: PropTypes.arrayOf(PropTypes.object),
-  isTyping: PropTypes.bool,
-  user: PropTypes.object,
-  renderChatEmpty: PropTypes.func,
-  renderFooter: PropTypes.func,
-  renderMessage: PropTypes.func,
-  renderLoadEarlier: PropTypes.func,
-  onLoadEarlier: PropTypes.func,
-  listViewProps: PropTypes.object,
-  inverted: PropTypes.bool,
-  loadEarlier: PropTypes.bool,
-  invertibleScrollViewProps: PropTypes.object,
-  extraData: PropTypes.object,
-  scrollToBottom: PropTypes.bool,
-  scrollToBottomOffset: PropTypes.number,
-  scrollToBottomComponent: PropTypes.func,
-  alignTop: PropTypes.bool,
-  scrollToBottomStyle: StylePropType,
-  infiniteScroll: PropTypes.bool,
 }
 
 export default MessageContainer

@@ -6,6 +6,5 @@ import { MessageContainer } from '../GiftedChat'
 
 it('should render <MessageContainer /> and compare with snapshot', () => {
   const tree = renderer.create(<MessageContainer />).toJSON()
-
   expect(tree).toMatchSnapshot()
 })
