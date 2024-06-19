@@ -270,11 +270,10 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     }
   }
 
-  const onEndReached = ({ distanceFromEnd }: { distanceFromEnd: number }) => {
+  const onEndReached = () => {
     if (
       infiniteScroll &&
-      (hasScrolled || distanceFromEnd > 0) &&
-      distanceFromEnd <= 100 &&
+      hasScrolled &&
       loadEarlier &&
       onLoadEarlier &&
       !isLoadingEarlier &&
