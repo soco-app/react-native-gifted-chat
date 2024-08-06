@@ -27,6 +27,7 @@ export interface MessageContainerProps<TMessage extends IMessage> {
     onQuickReply?(replies: Reply[]): void;
     infiniteScroll?: boolean;
     isLoadingEarlier?: boolean;
+    scrollEventThrottle?: number;
 }
 declare const MessageContainer: <TMessage extends IMessage = IMessage>(props: MessageContainerProps<TMessage>) => JSX.Element;
 export default MessageContainer;
