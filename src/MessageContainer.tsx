@@ -1,4 +1,4 @@
-import React, { useState, useRef, RefObject } from 'react'
+import React, { useState, useRef, RefObject, useCallback } from 'react'
 
 import {
   FlatList,
@@ -270,6 +270,21 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     }
   }
 
+  const debounce = <T extends (...args: any[]) => void>(
+    func: T,
+    delay: number,
+  ): ((...args: Parameters<T>) => void) => {
+    let timeoutId: ReturnType<typeof setTimeout>
+    return (...args: Parameters<T>) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      timeoutId = setTimeout(() => {
+        func(...args)
+      }, delay)
+    }
+  }
+
   const onEndReached = () => {
     if (
       infiniteScroll &&
@@ -283,7 +298,11 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     }
   }
 
-  const keyExtractor = (item: TMessage) => `${item._id}`
+  const debouncedOnEndReached = useCallback(debounce(onEndReached, 200), [
+    onEndReached,
+  ])
+
+  const keyExtractor = (item: TMessage) => `message-${item._id}`
 
   return (
     <View style={alignTop ? styles.containerAlignTop : styles.container}>
@@ -305,7 +324,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
         onScroll={handleOnScroll}
         scrollEventThrottle={100}
         onLayout={onLayoutList}
-        onEndReached={onEndReached}
+        onEndReached={debouncedOnEndReached}
         onEndReachedThreshold={0.1}
         estimatedItemSize={200}
         {...listViewProps}
