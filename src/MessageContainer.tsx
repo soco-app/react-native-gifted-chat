@@ -322,7 +322,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
         ListFooterComponent={inverted ? renderHeaderWrapper : renderFooter}
         ListHeaderComponent={inverted ? renderFooterView : renderHeaderWrapper}
         onScroll={handleOnScroll}
-        scrollEventThrottle={100}
+        scrollEventThrottle={16}
         onLayout={onLayoutList}
         onEndReached={debouncedOnEndReached}
         onEndReachedThreshold={0.1}
