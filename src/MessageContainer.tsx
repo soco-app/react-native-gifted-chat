@@ -303,10 +303,12 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
     onEndReached,
   ])
 
-  const keyExtractor = (item: TMessage) =>
-    `message-${item._id}${item.createdAt ? String(item.createdAt) : ''}${
-      item.text ? item.text.substring(0, 10) : ''
-    }`
+  // const keyExtractor = (item: TMessage) =>
+  //   `message-${item._id}${item.createdAt ? String(item.createdAt) : ''}${
+  //     item.text ? item.text.substring(0, 10) : ''
+  //   }`
+
+  const keyExtractor = (item: TMessage) => `message-${item._id}`
 
   return (
     <View style={alignTop ? styles.containerAlignTop : styles.container}>
