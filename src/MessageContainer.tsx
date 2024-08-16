@@ -84,7 +84,6 @@ export interface MessageContainerProps<TMessage extends IMessage> {
   onQuickReply?(replies: Reply[]): void
   infiniteScroll?: boolean
   isLoadingEarlier?: boolean
-  scrollEventThrottle?: number
 }
 
 const MessageContainer = <TMessage extends IMessage = IMessage>(
