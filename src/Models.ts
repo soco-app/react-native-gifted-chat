@@ -62,6 +62,7 @@ export interface IMessage {
   received?: boolean
   pending?: boolean
   quickReplies?: QuickReplies
+  idempotency_key?: string
 }
 
 export type IChatMessage = IMessage
