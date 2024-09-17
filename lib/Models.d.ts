@@ -50,6 +50,7 @@ export interface IMessage {
     received?: boolean;
     pending?: boolean;
     quickReplies?: QuickReplies;
+    idempotency_key?: string;
 }
 export declare type IChatMessage = IMessage;
 export interface MessageVideoProps<TMessage extends IMessage> {
