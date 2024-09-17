@@ -185,8 +185,11 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
   }
 
   const renderRow = ({ item, index }: ListRenderItemInfo<TMessage>) => {
-    if (!item._id && item._id !== 0) {
-      warning('GiftedChat: `_id` is missing for message', JSON.stringify(item))
+    if (!item._id && item._id !== 0 && !item.idempotency_key) {
+      warning(
+        'GiftedChat: `_id` and `idempotency_key` is missing for message',
+        JSON.stringify(item),
+      )
     }
     if (!item.user) {
       if (!item.system) {
@@ -207,7 +210,7 @@ const MessageContainer = <TMessage extends IMessage = IMessage>(
         ...restProps,
         // @ts-expect-error
         user,
-        key: item._id,
+        key: item.idempotency_key ?? item._id,
         currentMessage: item,
         previousMessage,
         inverted,
